@@ -46,7 +46,7 @@ st.markdown(
     }
     </style>
 """,
-    unsafe_allow_javascript=True,
+    unsafe_allow_html=True,
 )
 
 # Render Header Banner
@@ -57,7 +57,7 @@ st.markdown(
         <h3>ISLAMABAD POLICE — COMMAND & CONTROL DASHBOARD</h3>
     </div>
 """,
-    unsafe_allow_javascript=True,
+    unsafe_allow_html=True,
 )
 
 
