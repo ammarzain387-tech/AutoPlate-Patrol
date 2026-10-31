@@ -42,10 +42,19 @@ st.markdown(
         margin-top: 5px;
         font-weight: 300;
     }
-   # Helper: Send OTP via Gmail SMTP
+   import ssl
+
+
+# Helper: Send OTP via Gmail SMTP
 def send_otp_email(target_email, otp_code):
-    sender_email = st.secrets.get("GMAIL_USER", "noreply.autoplate@gmail.com")
-    sender_pass = st.secrets.get("GMAIL_PASS", "")
+    sender_email = st.secrets.get("GMAIL_USER", "").strip()
+    sender_pass = st.secrets.get("GMAIL_PASS", "").strip().replace(" ", "")
+
+    if not sender_email or not sender_pass:
+        return (
+            True,
+            f"DEBUG MODE: OTP Code is `{otp_code}` (Configure Streamlit Secrets).",
+        )
 
     msg = MIMEText(
         f"Your AutoPlate Patrol password reset OTP code is: {otp_code}\n\nDo not share this code with anyone."
@@ -55,21 +64,14 @@ def send_otp_email(target_email, otp_code):
     msg["To"] = target_email
 
     try:
-        if sender_pass:
-            # Streamlit Cloud ke liye Port 587 + STARTTLS
-            server = smtplib.SMTP("smtp.gmail.com", 587)
-            server.starttls()
-            # App password se spaces remove karna
-            clean_pass = sender_pass.replace(" ", "")
-            server.login(sender_email, clean_pass)
+        context = ssl.create_default_context()
+        with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
+            server.ehlo()
+            server.starttls(context=context)
+            server.ehlo()
+            server.login(sender_email, sender_pass)
             server.sendmail(sender_email, target_email, msg.as_string())
-            server.quit()
-            return True, "OTP successfully sent to your registered Gmail!"
-        else:
-            return (
-                True,
-                f"DEBUG MODE: OTP Code generated is `{otp_code}`.",
-            )
+        return True, "OTP successfully sent to your registered Gmail!"
     except Exception as e:
         return False, f"Email delivery failed: {str(e)}"
     .stButton>button {
