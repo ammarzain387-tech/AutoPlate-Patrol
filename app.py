@@ -8,7 +8,6 @@ import easyocr
 import numpy as np
 import pandas as pd
 import streamlit as st
-from PIL import Image
 
 # Page Configuration
 st.set_page_config(
@@ -49,17 +48,15 @@ st.markdown(
         border-radius: 5px;
     }
     </style>
-""",
+    """,
     unsafe_allow_html=True,
 )
 
 
-# Helper: Password Hashing
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 
-# Helper: Send OTP via Gmail SMTP
 def send_otp_email(target_email, otp_code):
     sender_email = st.secrets.get("GMAIL_USER", "noreply.autoplate@gmail.com")
     sender_pass = st.secrets.get("GMAIL_PASS", "")
@@ -81,13 +78,12 @@ def send_otp_email(target_email, otp_code):
         else:
             return (
                 True,
-                f"DEBUG MODE: OTP Code generated is `{otp_code}` (Configure Streamlit Secrets for real Gmail sending).",
+                f"DEBUG MODE: OTP Code generated is `{otp_code}`.",
             )
     except Exception as e:
         return False, f"Email delivery failed: {str(e)}"
 
 
-# Database Connection & Initialization
 def get_db_connection():
     return sqlite3.connect("stolen_vehicles.db", check_same_thread=False)
 
@@ -96,7 +92,6 @@ def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Vehicles Table
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS stolen_vehicles (
@@ -110,10 +105,9 @@ def init_db():
             fir_number TEXT,
             status TEXT DEFAULT 'WANTED'
         )
-    """
+        """
     )
 
-    # Users Table
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS users (
@@ -125,10 +119,9 @@ def init_db():
             password TEXT NOT NULL,
             role TEXT DEFAULT 'STAFF'
         )
-    """
+        """
     )
 
-    # Default Admin Creation
     cursor.execute("SELECT * FROM users WHERE role = 'ADMIN'")
     if not cursor.fetchone():
         admin_pass = hash_password("Admin@123")
@@ -136,7 +129,7 @@ def init_db():
             """
             INSERT INTO users (full_name, belt_number, email, username, password, role)
             VALUES (?, ?, ?, ?, ?, ?)
-        """,
+            """,
             (
                 "System Administrator",
                 "ADM-001",
@@ -154,7 +147,6 @@ def init_db():
 init_db()
 
 
-# OCR Loader
 @st.cache_resource
 def load_ocr():
     return easyocr.Reader(["en"])
@@ -162,7 +154,6 @@ def load_ocr():
 
 reader = load_ocr()
 
-# Session State Initialization
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.username = ""
@@ -173,21 +164,17 @@ if "reset_otp" not in st.session_state:
     st.session_state.reset_otp = None
     st.session_state.reset_user = None
 
-# Universal Header Banner
 st.markdown(
     """
     <div class="main-header">
         <h1>AUTOPLATE PATROL — ANPR COMMAND CENTER</h1>
         <h3>AUTOMATED STOLEN & WANTED VEHICLE RECOGNITION SYSTEM</h3>
     </div>
-""",
+    """,
     unsafe_allow_html=True,
 )
 
-# Authentication Routing
 if not st.session_state.logged_in:
-
-    # --- SIDEBAR: ADMIN LOGIN PORTAL ---
     st.sidebar.markdown("## 🔐 Admin Access Portal")
     st.sidebar.caption("Restricted area for System Administrators")
     admin_u = st.sidebar.text_input("Admin Username", key="admin_u_input")
@@ -221,7 +208,6 @@ if not st.session_state.logged_in:
 
     st.sidebar.markdown("---")
 
-    # --- MAIN PAGE: STAFF LOGIN & FORGOT PASSWORD ---
     tab_staff_login, tab_forgot = st.tabs(
         ["👮 Duty Officer Login", "🔑 Forgot / Reset Password"]
     )
@@ -265,7 +251,7 @@ if not st.session_state.logged_in:
                 **Duty Officer Access:**
                 - Standard credentials assigned by System Admin.
                 - For password issues, use the **Forgot / Reset Password** tab.
-            """
+                """
             )
 
     with tab_forgot:
@@ -332,14 +318,12 @@ if not st.session_state.logged_in:
                     st.error("Invalid OTP or Password must be 6+ characters.")
 
 else:
-    # Sidebar Profile & Logout
     st.sidebar.title(f"👤 {st.session_state.full_name}")
     st.sidebar.caption(f"Role: **{st.session_state.role}**")
     if st.sidebar.button("Logout"):
         st.session_state.logged_in = False
         st.rerun()
 
-    # Navigation Tabs based on Role
     if st.session_state.role == "ADMIN":
         tab1, tab2, tab3, tab4, tab5 = st.tabs(
             [
@@ -360,7 +344,6 @@ else:
             ]
         )
 
-    # Tab 1: Live Stream
     with tab1:
         col1, col2 = st.columns([2, 1])
         with col1:
@@ -382,7 +365,6 @@ else:
             st.subheader("🚨 Security Alerts")
             st.info("System Ready. Monitoring active feed...")
 
-    # Tab 2: Image Scanner
     with tab2:
         st.subheader("🔍 Scan Vehicle Image")
         uploaded_file = st.file_uploader(
@@ -432,7 +414,6 @@ else:
                     else:
                         st.warning("No license plate detected.")
 
-    # Tab 3: Wanted Registry
     with tab3:
         st.subheader("📝 Register Wanted Vehicle")
         with st.form("add_veh"):
@@ -455,3 +436,95 @@ else:
                             INSERT INTO stolen_vehicles 
                             (plate_number, vehicle_model, vehicle_color, engine_number, chassis_number, owner_name, fir_number)
                             VALUES (?, ?, ?, ?, ?, ?, ?)
+                            """,
+                            (
+                                p_num.strip(),
+                                v_mod.strip(),
+                                v_col.strip(),
+                                eng_num.strip(),
+                                chas_num.strip(),
+                                owner.strip(),
+                                fir.strip(),
+                            ),
+                        )
+                        conn.commit()
+                        conn.close()
+                        st.success(
+                            f"Vehicle `{p_num}` registered successfully!"
+                        )
+                    except sqlite3.IntegrityError:
+                        st.error("Plate number already exists.")
+                else:
+                    st.error("Plate Number & FIR Number are mandatory.")
+
+        st.markdown("---")
+        st.subheader("📑 Blacklisted Vehicles Database")
+        conn = get_db_connection()
+        df = pd.read_sql_query("SELECT * FROM stolen_vehicles", conn)
+        conn.close()
+        st.dataframe(df, use_container_width=True)
+
+    with tab4:
+        st.subheader("📊 Audit Reports & Export")
+        conn = get_db_connection()
+        df_logs = pd.read_sql_query("SELECT * FROM stolen_vehicles", conn)
+        conn.close()
+        csv = df_logs.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "📥 Export Full Registry (CSV)",
+            csv,
+            "AutoPlate_Report.csv",
+            "text/csv",
+        )
+
+    if st.session_state.role == "ADMIN":
+        with tab5:
+            st.subheader("👥 Register New Staff / Duty Officer")
+            with st.form("add_user_form"):
+                f_name = st.text_input("Full Name")
+                b_num = st.text_input("Belt / ID Number")
+                u_email = st.text_input("Official Email (Gmail)")
+                u_name = st.text_input("Username")
+                u_pass = st.text_input("Initial Password", type="password")
+                u_role = st.selectbox("Role", ["STAFF", "ADMIN"])
+                u_sub = st.form_submit_button("Create User Account")
+
+                if u_sub:
+                    if u_name and u_pass and u_email:
+                        try:
+                            conn = get_db_connection()
+                            cursor = conn.cursor()
+                            cursor.execute(
+                                """
+                                INSERT INTO users (full_name, belt_number, email, username, password, role)
+                                VALUES (?, ?, ?, ?, ?, ?)
+                                """,
+                                (
+                                    f_name.strip(),
+                                    b_num.strip(),
+                                    u_email.strip(),
+                                    u_name.strip(),
+                                    hash_password(u_pass),
+                                    u_role,
+                                ),
+                            )
+                            conn.commit()
+                            conn.close()
+                            st.success(
+                                f"Account for `{u_name}` created as {u_role}!"
+                            )
+                        except sqlite3.IntegrityError:
+                            st.error("Username or Email already exists.")
+                    else:
+                        st.error("All fields are required.")
+
+            st.markdown("---")
+            st.subheader("📋 Registered System Users")
+            conn = get_db_connection()
+            df_users = pd.read_sql_query(
+                "SELECT id, full_name, belt_number, email, username, role FROM users",
+                conn,
+            )
+            conn.close()
+            st.dataframe(df_users, use_container_width=True)
+            
