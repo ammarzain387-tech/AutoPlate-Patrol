@@ -455,20 +455,3 @@ else:
                             INSERT INTO stolen_vehicles 
                             (plate_number, vehicle_model, vehicle_color, engine_number, chassis_number, owner_name, fir_number)
                             VALUES (?, ?, ?, ?, ?, ?, ?)
-                        """,
-                            (
-                                p_num.strip(),
-                                v_mod.strip(),
-                                v_col.strip(),
-                                eng_num.strip(),
-                                chas_num.strip(),
-                                owner.strip(),
-                                fir.strip(),
-                            ),
-                        )
-                        conn.commit()
-                        conn.close()
-                        st.success(
-                            f"Vehicle `{p_num}` registered successfully!"
-                        )
-                    except sqlite3.IntegrityError
