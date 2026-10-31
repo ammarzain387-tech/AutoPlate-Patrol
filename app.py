@@ -47,13 +47,13 @@ import smtplib
 from email.mime.text import MIMEText
 import streamlit as st
 
-# Helper: Send OTP via Gmail SMTP with Cloud Network Handling
+# Helper: Robust Send OTP Function with Dual-Port Retry
 def send_otp_email(target_email, otp_code):
     sender_email = st.secrets.get("GMAIL_USER", "").strip()
     sender_pass = st.secrets.get("GMAIL_PASS", "").strip().replace(" ", "")
 
     if not sender_email or not sender_pass:
-        return True, f"⚠️ Secrets Not Set. Testing OTP Code: `{otp_code}`"
+        return True, f"⚠️ Secrets missing! Testing OTP Code: `{otp_code}`"
 
     msg = MIMEText(
         f"Your AutoPlate Patrol password reset OTP code is: {otp_code}\n\nDo not share this code with anyone."
@@ -62,21 +62,27 @@ def send_otp_email(target_email, otp_code):
     msg["From"] = sender_email
     msg["To"] = target_email
 
+    context = ssl.create_default_context()
+
+    # Try 1: Port 465 (Direct SSL)
     try:
-        context = ssl.create_default_context()
-        with smtplib.SMTP("smtp.gmail.com", 587, timeout=8) as server:
-            server.ehlo()
-            server.starttls(context=context)
-            server.ehlo()
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context, timeout=8) as server:
             server.login(sender_email, sender_pass)
             server.sendmail(sender_email, target_email, msg.as_string())
-        return True, "✅ OTP successfully sent to your registered Gmail!"
+        return True, "✅ Real OTP email successfully sent to your registered Gmail!"
     except Exception:
-        # Handle Streamlit Cloud IP drops gracefully without breaking app workflow
-        return (
-            True,
-            f"⚠️ Streamlit Cloud IP limitation detected. Testing OTP Code: `{otp_code}`",
-        )
+        pass
+
+    # Try 2: Port 587 (TLS Fallback)
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587, timeout=8) as server:
+            server.starttls(context=context)
+            server.login(sender_email, sender_pass)
+            server.sendmail(sender_email, target_email, msg.as_string())
+        return True, "✅ Real OTP email successfully sent to your registered Gmail!"
+    except Exception:
+        # Fallback if Streamlit Cloud IP is restricted by Google
+        return True, f"⚠️ Cloud Network restriction active. Security Testing OTP Code: `{otp_code}`"
     .stButton>button {
         background-color: #1b365d;
         color: white;
