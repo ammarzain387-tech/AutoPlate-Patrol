@@ -27,32 +27,33 @@
 
 ## 📂 Repository Structure
 
-```text
-.
-├── app.py                # Core application entry point
-├── requirements.txt      # Dependencies
-├── stolen_vehicles.db    # SQLite database (Auto-initialized)
-└── README.md             # Project documentation
-⚙️ Installation & Usage
-Clone Repository:
+* `app.py` — Core application entry point
+* `requirements.txt` — Project dependencies
+* `stolen_vehicles.db` — SQLite database (Auto-initialized)
+* `README.md` — Project documentation
 
-Bash
-git clone https://github.com/ammarzain387-tech/AutoPlate-Patrol.git
-cd AutoPlate-Patrol
-Install Dependencies:
+---
 
-Bash
-pip install -r requirements.txt
-Run Application:
+## ⚙️ Installation & Usage
 
-Bash
-streamlit run app.py
-🔐 Default Access Credentials
-Admin Username: admin
+1. **Clone Repository**:
+   `git clone [https://github.com/ammarzain387-tech/AutoPlate-Patrol.git](https://github.com/ammarzain387-tech/AutoPlate-Patrol.git)`
+2. **Navigate to Directory**:
+   `cd AutoPlate-Patrol`
+3. **Install Dependencies**:
+   `pip install -r requirements.txt`
+4. **Run Application**:
+   `streamlit run app.py`
 
-Admin Password: Admin@123
+---
 
-Default Belt ID: ADMIN-01
+## 🔐 Default Access Credentials
 
-📜 License
+- **Admin Username**: `admin`
+- **Admin Password**: `Admin@123`
+- **Default Belt ID**: `ADMIN-01`
+
+---
+
+## 📜 License
 Developed for law enforcement, field security monitoring, and automated vehicle surveillance.
