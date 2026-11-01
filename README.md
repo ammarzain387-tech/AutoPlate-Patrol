@@ -33,19 +33,20 @@
 ├── requirements.txt      # Dependencies
 ├── stolen_vehicles.db    # SQLite database (Auto-initialized)
 └── README.md             # Project documentation
-
 ⚙️ Installation & Usage
+Clone Repository:
 
-1.   Clone Repository:
-git clone [https://github.com/your-ammarzain387-tech/AutoPlate-Patrol.git](https://github.com/ammarzain387-tech/AutoPlate-Patrol.git)
+Bash
+git clone https://github.com/ammarzain387-tech/AutoPlate-Patrol.git
 cd AutoPlate-Patrol
+Install Dependencies:
 
-2.   Istall Dependencies:
+Bash
 pip install -r requirements.txt
+Run Application:
 
-3.   Run Application:
+Bash
 streamlit run app.py
-
 🔐 Default Access Credentials
 Admin Username: admin
 
