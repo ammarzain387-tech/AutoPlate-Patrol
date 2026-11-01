@@ -33,7 +33,25 @@
 ├── requirements.txt      # Dependencies
 ├── stolen_vehicles.db    # SQLite database (Auto-initialized)
 └── README.md             # Project documentation
-git clone [https://github.com/your-username/AutoPlate-Patrol.git](https://github.com/your-username/AutoPlate-Patrol.git)
+
+⚙️ Installation & Usage
+
+1.   Clone Repository:
+git clone [https://github.com/your-ammarzain387-tech/AutoPlate-Patrol.git](https://github.com/ammarzain387-tech/AutoPlate-Patrol.git)
 cd AutoPlate-Patrol
+
+2.   Istall Dependencies:
 pip install -r requirements.txt
+
+3.   Run Application:
 streamlit run app.py
+
+🔐 Default Access Credentials
+Admin Username: admin
+
+Admin Password: Admin@123
+
+Default Belt ID: ADMIN-01
+
+📜 License
+Developed for law enforcement, field security monitoring, and automated vehicle surveillance.
